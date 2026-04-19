@@ -84,9 +84,14 @@
 
                 <div class="mb-8">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Atau Custom Pake Kode Rahasiamu:</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="customSeedInput" placeholder="Ketik apa aja..." class="flex-1 px-4 py-2 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm focus:border-blue-400 outline-none transition-all">
-                        <button onclick="applyCustomAvatar()" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-black transition-all">PAKAI</button>
+                    <div class="flex items-center gap-2 w-full">
+                        <input type="text" id="customSeedInput" placeholder="Ketik apa aja..." 
+                            class="min-w-0 flex-1 px-4 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm focus:border-blue-400 outline-none transition-all">
+                        
+                        <button onclick="applyCustomAvatar()" 
+                                class="shrink-0 bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-black transition-all active:scale-95">
+                            PAKAI
+                        </button>
                     </div>
                 </div>
 
@@ -236,20 +241,40 @@
             };
 
             window.applyCustomAvatar = function() {
-                const seed = document.getElementById('customSeedInput').value;
+                const seed = document.getElementById('customSeedInput').value.trim();
                 if(!seed) return;
-                const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`;
+                
+                // Gunakan style adventurer yang keren
+                const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
                 const grid = document.getElementById('avatarGrid');
-                grid.innerHTML = `
-                    <label class="avatar-label cursor-pointer transition-all duration-300 col-span-4">
+                
+                // Buat element baru untuk preview custom
+                const customBox = `
+                    <label class="avatar-label cursor-pointer transition-all duration-300 col-span-4 mb-2">
                         <input type="radio" name="avatar_opt" value="${url}" class="hidden" checked onchange="checkLoginRequirements()">
-                        <div class="border-2 border-blue-400 rounded-2xl p-4 flex flex-col items-center justify-center transition-all bg-blue-50">
-                            <img src="${url}" class="w-20 h-20 mb-2">
-                            <span class="text-[10px] font-bold text-blue-600">AVATAR CUSTOM AKTIF</span>
+                        <div class="border-2 border-blue-400 rounded-2xl p-3 md:p-4 flex items-center justify-between transition-all bg-blue-50">
+                            <div class="flex items-center gap-3">
+                                <img src="${url}" class="w-12 h-12 md:w-16 md:h-16">
+                                <div class="text-left">
+                                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-tight">Avatar Custom Aktif</p>
+                                    <p class="text-[10px] text-blue-400">"${seed}"</p>
+                                </div>
+                            </div>
+                            <div class="bg-blue-500 text-white p-1 rounded-full">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
                         </div>
                     </label>
-                ` + grid.innerHTML;
+                `;
+                
+                // Reset grid sebentar dan masukkan custom box di paling atas
+                generateNewAvatars(); 
+                grid.insertAdjacentHTML('afterbegin', customBox);
+                
                 checkLoginRequirements();
+                
+                // Tambahkan feedback suara kecil kalau mau (opsional)
+                console.log("Avatar updated with seed:", seed);
             };
 
             // INITIALIZE GRID AVATAR
