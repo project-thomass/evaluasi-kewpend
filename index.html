@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian Kompetensi OTKP - Premium Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        
+        /* Style untuk Opsi Jawaban */
+        .option-label input:checked + div {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            transform: scale(1.01);
+        }
+        .option-label input:checked + div .radio-circle {
+            border-color: #3b82f6;
+            background-color: #3b82f6;
+            box-shadow: inset 0 0 0 4px #eff6ff;
+        }
+
+        /* Style untuk Grid Pemilihan Avatar */
+        .avatar-label input:checked + div {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col items-center justify-center p-4 antialiased">
+
+    <div class="w-full max-w-3xl mb-6 md:mb-8 md:mt-6 mt-4 text-center">
+        <h1 class="text-2xl md:text-4xl font-extrabold text-slate-800 tracking-tight">Portal Ujian Evaluasi</h1>
+        <p class="text-sm md:text-base text-slate-500 mt-2 font-medium">Materi Etika Kewirausahaan</p>
+    </div>
+
+    <div class="bg-white p-5 md:p-10 md:mb-10 mb-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 w-full max-w-3xl relative overflow-hidden">
+        
+        <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center px-4">
+            <div id="loadingAvatarContainer" class="hidden mb-4 relative">
+                <img id="loadingMiniAvatar" src="" class="w-16 h-16 md:w-20 md:h-20 bg-slate-100 rounded-full border-4 border-blue-100 shadow-lg animate-pulse" alt="Loading Avatar">
+                <div class="absolute -bottom-1 -right-1 bg-green-500 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+            </div>
+            <svg class="animate-spin h-10 w-10 md:h-12 md:w-12 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p id="loadingText" class="text-slate-800 font-bold text-sm md:text-lg mb-1">Memproses data...</p>
+            <p id="loadingSubText" class="text-slate-500 font-medium text-xs md:text-sm max-w-xs"></p>
+        </div>
+
+        <div id="loginSection" class="py-4 md:py-6">
+            <div class="text-center mb-8">
+                <h2 class="text-xl md:text-3xl font-black text-slate-800 mb-2">Siapkan Karaktermu!</h2>
+                <p class="text-xs md:text-base text-slate-500 font-medium">Pilih avatar yang paling keren untuk mewakilimu.</p>
+            </div>
+            
+            <div class="max-w-md mx-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-xs font-bold text-slate-700 uppercase tracking-widest">Pilih Avatar</label>
+                    <button onclick="generateNewAvatars()" class="text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1 rounded-full transition-all flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        GANTI KOLEKSI
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-4 gap-3 md:gap-4 mb-6" id="avatarGrid">
+                    </div>
+
+                <div class="mb-8">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Atau Custom Pake Kode Rahasiamu:</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="customSeedInput" placeholder="Ketik apa aja..." class="flex-1 px-4 py-2 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm focus:border-blue-400 outline-none transition-all">
+                        <button onclick="applyCustomAvatar()" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-black transition-all">PAKAI</button>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-6 mb-6">
+                    <label for="namaInput" class="block text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide text-center">Nama Lengkap Kamu</label>
+                    <input type="text" id="namaInput" oninput="checkLoginRequirements()" class="w-full px-5 py-4 border-2 border-slate-200 rounded-2xl focus:ring-0 focus:border-blue-500 focus:outline-none transition-colors text-center font-bold text-lg" placeholder="Contoh: Donald Trump" autocomplete="off">
+                </div>
+                
+                <button id="btnMulai" onclick="_0xGlobalStart()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-2xl transition-all shadow-lg hover:shadow-blue-500/30 opacity-50 cursor-not-allowed text-base flex justify-center items-center gap-3" disabled>
+                    MULAI UJIAN SEKARANG
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </button>
+                
+                <div id="errorBox" class="bg-red-50 text-red-600 border border-red-200 text-xs p-4 rounded-xl mt-5 hidden">
+                    <p id="errorMsg" class="font-semibold text-center"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="quizSection" class="hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 border-b border-slate-100 pb-3 md:pb-5 gap-3 md:gap-4">
+                <div class="flex items-center gap-3">
+                    <img id="activeAvatar" src="" class="w-10 h-10 md:w-12 md:h-12 bg-slate-100 rounded-full border-2 border-slate-200" alt="Player Avatar">
+                    <div>
+                        <p class="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Peserta</p>
+                        <p id="studentNameDisplay" class="font-bold text-slate-800 text-base md:text-lg"></p>
+                    </div>
+                </div>
+                <div class="w-full md:w-auto text-left md:text-right">
+                    <div class="inline-flex items-center bg-blue-50 text-blue-700 text-[11px] md:text-sm font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-xl border border-blue-100">
+                        <svg class="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Soal <span id="currentQuestionNum" class="mx-1">1</span> dari <span id="totalQuestionsNum" class="ml-1">15</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full bg-slate-100 rounded-full h-1.5 md:h-2 mb-5 md:mb-8 overflow-hidden">
+                <div id="progressBar" class="bg-blue-500 h-1.5 md:h-2 rounded-full transition-all duration-500 ease-out" style="width: 10%"></div>
+            </div>
+
+            <div id="questionContainer" class="mb-5 md:mb-8 min-h-[200px] md:min-h-[300px]"></div>
+
+            <div class="flex flex-col-reverse md:flex-row justify-between items-center mt-5 md:mt-8 pt-4 md:pt-6 border-t border-slate-100 gap-3 md:gap-4">
+                <p class="text-[10px] md:text-xs text-slate-400 font-medium text-center md:text-left">© 2026 - Ujian Kompetensi</p>
+                <div class="w-full md:w-auto">
+                    <button id="btnNext" onclick="_0xGlobalNext()" class="w-full md:w-auto bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-6 md:py-3 md:px-10 rounded-xl transition shadow-lg hidden text-sm md:text-base">
+                        Lanjut
+                    </button>
+                    <button id="btnSubmit" onclick="_0xGlobalSubmit()" class="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-6 md:py-3 md:px-10 rounded-xl transition shadow-lg shadow-green-500/30 hidden text-sm md:text-base">
+                        Selesaikan Ujian
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultSection" class="hidden py-4 md:py-8">
+            <div class="text-center mb-6 md:mb-10 border-b border-slate-100 pb-6 md:pb-10 relative">
+                <div class="relative inline-block mx-auto mb-4 md:mb-6">
+                    <img id="resultAvatar" src="" class="w-20 h-20 md:w-28 md:h-28 bg-slate-100 rounded-full border-4 border-white shadow-xl relative z-10" alt="Player Result Avatar">
+                    <div id="resultStatusIcon" class="absolute -bottom-2 -right-2 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center z-20 border-2 border-white"></div>
+                </div>
+
+                <div id="resultDesc" class="text-slate-600 font-medium mb-5 md:mb-8 text-sm md:text-lg"></div>
+                
+                <div class="inline-block bg-white border-2 border-slate-100 shadow-sm rounded-2xl px-8 py-4 md:px-12 md:py-6 relative z-10">
+                    <p class="text-[10px] md:text-sm text-slate-400 font-bold uppercase tracking-widest mb-1 md:mb-2">Skor Akhir Anda</p>
+                    <p id="finalScoreDisplay" class="text-5xl md:text-7xl font-black text-blue-600 tracking-tighter"></p>
+                </div>
+            </div>
+
+            <div id="reviewWrapper" class="hidden">
+                <h3 class="text-base md:text-xl font-bold text-slate-800 mb-3 md:mb-6 flex items-center">
+                    <div class="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-red-100 text-red-500 flex items-center justify-center mr-2 md:mr-3">
+                        <svg class="w-3.5 h-3.5 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                    Review Jawaban Salah
+                </h3>
+                <div id="reviewContainer" class="space-y-3 md:space-y-4"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            // == 1. DATA & KONFIGURASI ==
+            const _0xUrl = "https://script.google.com/macros/s/AKfycby2l03w5tUt43-HnVzQk0nzrUORB-sDkyRDW61RegqxKFLTwiTz2BvxF-N8eYC_4vF0-g/exec";
+            
+            let _0xQd = [
+                { q: "Sebuah perusahaan mengetahui bahwa produknya memiliki cacat kecil yang tidak membahayakan, tetapi dapat menurunkan kepercayaan konsumen jika diinformasikan. Manakah keputusan yang paling tepat berdasarkan prinsip etika bisnis?", o: [ { i: "A", t: "Tetap menjual produk tanpa memberikan informasi kepada konsumen" }, { i: "B", t: "Menarik seluruh produk dari pasar tanpa penjelasan" }, { i: "C", t: "Memberikan informasi secara terbuka kepada konsumen terkait kondisi produk" }, { i: "D", t: "Menunggu hingga konsumen menyadari adanya cacat tersebut" }, { i: "E", t: "Mengalihkan perhatian konsumen melalui promosi produk lain" } ], a: "C" },
+                { q: "Perusahaan tetap mempertahankan karyawan di tengah kondisi keuangan yang menurun, meskipun harus mengurangi keuntungan. Tindakan ini paling tepat mencerminkan prinsip…", o: [ { i: "A", t: "Efisiensi operasional" }, { i: "B", t: "Tanggung jawab sosial perusahaan" }, { i: "C", t: "Maksimalisasi keuntungan" }, { i: "D", t: "Persaingan bisnis" }, { i: "E", t: "Strategi pemasaran" } ], a: "B" },
+                { q: "Seorang wirausahawan memilih bekerja sama dengan pemasok yang menerapkan upah layak bagi pekerjanya, meskipun harga bahan baku lebih tinggi. Keputusan ini didasarkan pada pertimbangan…", o: [ { i: "A", t: "Efisiensi biaya produksi" }, { i: "B", t: "Keunggulan kompetitif jangka pendek" }, { i: "C", t: "Prinsip etika dan tanggung jawab social" }, { i: "D", t: "Strategi diferensiasi produk" }, { i: "E", t: "Pengurangan risiko usaha" } ], a: "C" },
+                { q: "Perusahaan memanipulasi laporan keuangan untuk menarik investor dalam jangka pendek. Dampak jangka panjang yang paling mungkin terjadi adalah…", o: [ { i: "A", t: "Peningkatan kepercayaan investor" }, { i: "B", t: "Stabilitas pertumbuhan perusahaan" }, { i: "C", t: "Penurunan reputasi dan hilangnya kepercayaan public" }, { i: "D", t: "Kenaikan nilai perusahaan secara berkelanjutan" }, { i: "E", t: "Efisiensi dalam pengelolaan keuangan" } ], a: "C" },
+                { q: "Inovasi produk yang dilakukan tanpa mempertimbangkan dampak sosial berpotensi menimbulkan…", o: [ { i: "A", t: "Loyalitas pelanggan yang tinggi" }, { i: "B", t: "Efisiensi dalam produksi" }, { i: "C", t: "Penolakan dari masyarakat" }, { i: "D", t: "Keuntungan maksimal" }, { i: "E", t: "Daya saing yang kuat" } ], a: "C" },
+                { q: "Seorang pengusaha tidak meniru ide bisnis pesaing meskipun berpotensi menghasilkan keuntungan besar. Sikap tersebut menunjukkan…", o: [ { i: "A", t: "Kurangnya strategi bisnis" }, { i: "B", t: "Integritas dalam berwirausaha" }, { i: "C", t: "Kelemahan dalam analisis pasar" }, { i: "D", t: "Ketidaksiapan bersaing" }, { i: "E", t: "Minimnya inovasi" } ], a: "B" },
+                { q: "Suatu keputusan bisnis memberikan keuntungan besar bagi perusahaan, tetapi merugikan pihak lain secara signifikan. Kondisi ini menunjukkan adanya…", o: [ { i: "A", t: "Keadilan social" }, { i: "B", t: "Tanggung jawab perusahaan" }, { i: "C", t: "Konflik kepentingan dalam etika bisnis" }, { i: "D", t: "Efisiensi operasional" }, { i: "E", t: "Keunggulan kompetitif" } ], a: "C" },
+                { q: "Seorang wirausahawan menghadapi dilema antara menaikkan harga produk untuk menutup biaya produksi atau mempertahankan harga agar tetap terjangkau bagi konsumen. Keputusan yang paling etis adalah…", o: [ { i: "A", t: "Menaikkan harga tanpa mempertimbangkan konsumen" }, { i: "B", t: "Menurunkan kualitas produk agar harga tetap sama" }, { i: "C", t: "Menyeimbangkan kepentingan perusahaan dan konsumen" }, { i: "D", t: "Menghentikan produksi untuk menghindari kerugian" }, { i: "E", t: "Mengabaikan kondisi keuangan perusahaan" } ], a: "C" },
+                { q: "Perusahaan secara konsisten menjalankan program tanggung jawab sosial (CSR) di lingkungan sekitarnya. Hal ini menunjukkan bahwa perusahaan…", o: [ { i: "A", t: "Berupaya mengurangi pajak" }, { i: "B", t: "Berorientasi pada keuntungan semata" }, { i: "C", t: "Memiliki kepedulian terhadap lingkungan dan masyarakat" }, { i: "D", t: "Menghindari persaingan bisnis" }, { i: "E", t: "Mengurangi biaya operasional" } ], a: "C" },
+                { q: "Dalam kewirausahaan, pengambilan risiko yang baik harus disertai dengan…", o: [ { i: "A", t: "Keputusan yang cepat tanpa pertimbangan" }, { i: "B", t: "Spekulasi tinggi" }, { i: "C", t: "Analisis dan tanggung jawab" }, { i: "D", t: "Fokus pada keuntungan jangka pendek" }, { i: "E", t: "Mengabaikan kemungkinan kerugian" } ], a: "C" },
+                { q: "Sebuah perusahaan menyampaikan informasi produk secara berlebihan dalam iklan sehingga tidak sesuai dengan kondisi sebenarnya. Tindakan ini melanggar prinsip…", o: [ { i: "A", t: "Transparansi dalam bisnis" }, { i: "B", t: "Efisiensi pemasaran" }, { i: "C", t: "Loyalitas pelanggan" }, { i: "D", t: "Inovasi produk" }, { i: "E", t: "Diferensiasi pasar" } ], a: "A" },
+                { q: "Dalam persaingan bisnis, tindakan menjatuhkan pesaing dengan cara tidak jujur menunjukkan…", o: [ { i: "A", t: "Strategi bisnis yang efektif" }, { i: "B", t: "Penerapan etika bisnis yang baik" }, { i: "C", t: "Pelanggaran terhadap etika bisnis" }, { i: "D", t: "Inovasi dalam pemasaran" }, { i: "E", t: "Keunggulan kompetitif" } ], a: "C" },
+                { q: "Seorang pengusaha melibatkan masyarakat sekitar dalam kegiatan operasional usahanya untuk meningkatkan kesejahteraan bersama. Tindakan ini mencerminkan…", o: [ { i: "A", t: "Strategi efisiensi biaya" }, { i: "B", t: "Tanggung jawab sosial dan keberlanjutan" }, { i: "C", t: "Fokus pada ekspansi bisnis" }, { i: "D", t: "Pengurangan kualitas tenaga kerja" }, { i: "E", t: "Minimnya profesionalisme" } ], a: "B" },
+                { q: "Dalam proses pengambilan keputusan etis, langkah awal yang paling tepat adalah…", o: [ { i: "A", t: "Menghitung potensi keuntungan" }, { i: "B", t: "Mengidentifikasi masalah etis yang terjadi" }, { i: "C", t: "Mengikuti keputusan pesaing" }, { i: "D", t: "Mengurangi biaya produksi" }, { i: "E", t: "Mengabaikan risiko yang ada" } ], a: "B" },
+                { q: "Seorang wirausahawan tetap bersikap jujur kepada pelanggan meskipun mengalami kerugian. Sikap ini menunjukkan nilai utama dalam etika bisnis yaitu…", o: [ { i: "A", t: "Efisiensi" }, { i: "B", t: "Kompetisi" }, { i: "C", t: "Integritas" }, { i: "D", t: "Inovasi" }, { i: "E", t: "Profitabilitas" } ], a: "C" }
+            ];
+
+            let _0xCur = { n: "-", m: "", avatar: "" };
+            let _0xIdx = 0;
+            let _0xAns = [];
+            let _0xDone = false; 
+
+            // == 2. PROTEKSI & ANTI-CHEAT ==
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            document.onkeydown = function(e) {
+                if(e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C" || e.key === "i" || e.key === "j" || e.key === "c")) || (e.ctrlKey && (e.key === "U" || e.key === "u"))) {
+                    e.preventDefault(); return false;
+                }
+            };
+            const _0xAntiCheat = function() {
+                if(!_0xDone && !document.getElementById('quizSection').classList.contains('hidden')) {
+                    alert("⚠️ PELANGGARAN TERDETEKSI ⚠️\nAnda terdeteksi meninggalkan/berpindah dari halaman ujian. Halaman akan dimuat ulang dan semua progress Anda dihapus.");
+                    window.location.reload();
+                }
+            };
+            document.addEventListener("visibilitychange", function() { if(document.hidden) _0xAntiCheat(); });
+            window.addEventListener("blur", _0xAntiCheat);
+
+            // == 3. SISTEM AVATAR BARU ==
+            const styles = ['adventurer', 'avataaars', 'big-smile', 'bottts', 'fun-emoji', 'micah', 'pixel-art'];
+            
+            window.generateNewAvatars = function() {
+                const grid = document.getElementById('avatarGrid');
+                grid.innerHTML = "";
+                for(let i=0; i<8; i++) {
+                    const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+                    const randomSeed = Math.random().toString(36).substring(7);
+                    const url = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${randomSeed}`;
+                    grid.innerHTML += `
+                        <label class="avatar-label cursor-pointer transition-all duration-300">
+                            <input type="radio" name="avatar_opt" value="${url}" class="hidden" onchange="checkLoginRequirements()">
+                            <div class="border-2 border-slate-200 rounded-2xl p-2 flex items-center justify-center transition-all bg-slate-50 hover:bg-slate-100 h-full">
+                                <img src="${url}" class="w-12 h-12 md:w-16 md:h-16 object-contain">
+                            </div>
+                        </label>
+                    `;
+                }
+            };
+
+            window.applyCustomAvatar = function() {
+                const seed = document.getElementById('customSeedInput').value;
+                if(!seed) return;
+                const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`;
+                const grid = document.getElementById('avatarGrid');
+                grid.innerHTML = `
+                    <label class="avatar-label cursor-pointer transition-all duration-300 col-span-4">
+                        <input type="radio" name="avatar_opt" value="${url}" class="hidden" checked onchange="checkLoginRequirements()">
+                        <div class="border-2 border-blue-400 rounded-2xl p-4 flex flex-col items-center justify-center transition-all bg-blue-50">
+                            <img src="${url}" class="w-20 h-20 mb-2">
+                            <span class="text-[10px] font-bold text-blue-600">AVATAR CUSTOM AKTIF</span>
+                        </div>
+                    </label>
+                ` + grid.innerHTML;
+                checkLoginRequirements();
+            };
+
+            // INITIALIZE GRID AVATAR
+            generateNewAvatars();
+
+            window.checkLoginRequirements = function() {
+                const nama = document.getElementById('namaInput').value.trim();
+                const avatar = document.querySelector('input[name="avatar_opt"]:checked');
+                const btnMulai = document.getElementById('btnMulai');
+                
+                document.getElementById('errorBox').classList.add('hidden');
+
+                if(nama.length > 2 && avatar) {
+                    btnMulai.disabled = false;
+                    btnMulai.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btnMulai.disabled = true;
+                    btnMulai.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            };
+
+            // == 4. LOGIKA LOADING ==
+            function _0xLShow(t, sub, showAvatar = false) { 
+                document.getElementById('loadingText').innerText = t; 
+                document.getElementById('loadingSubText').innerText = sub;
+                document.getElementById('loadingOverlay').classList.remove('hidden'); 
+                if(showAvatar && _0xCur.avatar) {
+                    document.getElementById('loadingMiniAvatar').src = _0xCur.avatar;
+                    document.getElementById('loadingAvatarContainer').classList.remove('hidden');
+                } else {
+                    document.getElementById('loadingAvatarContainer').classList.add('hidden');
+                }
+            }
+            function _0xLHide() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+            // == 5. LOGIKA UJIAN ==
+            const _0xShfl = (a) => { for(let i=a.length-1; i>0; i--){ let j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } };
+
+            window._0xGlobalStart = function() {
+                _0xCur.m = document.getElementById('namaInput').value.trim();
+                _0xCur.avatar = document.querySelector('input[name="avatar_opt"]:checked').value;
+                
+                if(localStorage.getItem('ujianEtikaBisnisSelesai') === 'true') {
+                    document.getElementById('errorMsg').innerText = "Maaf, Perangkat (Device) ini sudah digunakan untuk mengerjakan ujian. Anda tidak dapat mengisi dua kali.";
+                    document.getElementById('errorBox').classList.remove('hidden');
+                    return;
+                }
+
+                _0xLShow("Mempersiapkan Ujian...", "Sedang menyinkronkan karakter " + _0xCur.m + " ke sistem...", true);
+                
+                setTimeout(() => {
+                    _0xLHide();
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('quizSection').classList.remove('hidden');
+                    
+                    document.getElementById('studentNameDisplay').innerText = _0xCur.m;
+                    document.getElementById('activeAvatar').src = _0xCur.avatar;
+                    document.getElementById('resultAvatar').src = _0xCur.avatar;
+                    
+                    _0xShfl(_0xQd);
+                    document.getElementById('totalQuestionsNum').innerText = _0xQd.length;
+                    
+                    _0xRndr();
+                }, 3000); // Delay 3 Detik di awal
+            };
+
+            function _0xRndr() {
+                const _0xQ = _0xQd[_0xIdx];
+                document.getElementById('currentQuestionNum').innerText = _0xIdx + 1;
+                document.getElementById('progressBar').style.width = `${((_0xIdx+1)/_0xQd.length)*100}%`;
+                
+                let _0xHtml = `<p class="text-base md:text-lg text-slate-800 mb-4 md:mb-6 font-semibold leading-relaxed">${_0xIdx+1}. ${_0xQ.q}</p><div class="space-y-3 md:space-y-4">`;
+                _0xQ.o.forEach(_0xOpt => {
+                    _0xHtml += `<label class="option-label block cursor-pointer transition-transform duration-200"><input type="radio" name="q_opt" value="${_0xOpt.i}" class="hidden" onchange="_0xGlobalEnable()"><div class="flex items-center p-3 md:p-4 border-2 border-slate-200 rounded-2xl hover:border-blue-300 hover:bg-slate-50 transition-all"><div class="radio-circle w-5 h-5 md:w-5 md:h-5 rounded-full border-2 border-slate-300 mr-3 md:mr-4 transition-colors shrink-0"></div><span class="text-slate-700 font-medium text-sm md:text-base leading-snug"><span class="font-bold mr-2 text-slate-400">${_0xOpt.i}.</span> ${_0xOpt.t}</span></div></label>`;
+                });
+                _0xHtml += `</div>`;
+                
+                document.getElementById('questionContainer').innerHTML = _0xHtml;
+                document.getElementById('btnNext').classList.add('hidden');
+                document.getElementById('btnSubmit').classList.add('hidden');
+            }
+
+            window._0xGlobalEnable = function() {
+                _0xIdx < _0xQd.length - 1 ? document.getElementById('btnNext').classList.remove('hidden') : document.getElementById('btnSubmit').classList.remove('hidden');
+            };
+
+            window._0xGlobalNext = function() {
+                const _0xO = document.getElementsByName('q_opt');
+                for(let i=0; i<_0xO.length; i++) if(_0xO[i].checked) _0xAns[_0xIdx] = _0xO[i].value;
+                _0xIdx++; _0xRndr();
+            };
+
+            window._0xGlobalSubmit = async function() {
+                const _0xO = document.getElementsByName('q_opt');
+                for(let i=0; i<_0xO.length; i++) if(_0xO[i].checked) _0xAns[_0xIdx] = _0xO[i].value;
+
+                let _0xB = 0;
+                _0xAns.forEach((a, i) => { if(a === _0xQd[i].a) _0xB++; });
+                let _0xSkor = Math.round((_0xB / _0xQd.length) * 100);
+
+                // Delay 3 Detik di akhir
+                _0xLShow("Menghitung Skor...", "Mengirimkan lembar jawaban " + _0xCur.m + " ke server...", true);
+                
+                try {
+                    // PENGIRIMAN KE GOOGLE SHEET TETAP AMAN DENGAN PARAMETER LENGKAP
+                    await fetch(_0xUrl, {
+                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nim: _0xCur.n, nama: _0xCur.m, jumlahBenar: _0xB, nilai: _0xSkor })
+                    });
+                    
+                    setTimeout(() => {
+                        _0xLHide();
+                        _0xDone = true; 
+                        localStorage.setItem('ujianEtikaBisnisSelesai', 'true');
+                        
+                        document.getElementById('quizSection').classList.add('hidden');
+                        document.getElementById('resultSection').classList.remove('hidden');
+                        document.getElementById('finalScoreDisplay').innerText = _0xSkor;
+
+                        // === LOGIKA ANIMASI & SUARA TETAP DIPERTAHANKAN ===
+                        const statusIcon = document.getElementById('resultStatusIcon');
+                        const descBox = document.getElementById('resultDesc');
+
+                        if (_0xSkor >= 80) {
+                            var duration = 4 * 1000;
+                            var animationEnd = Date.now() + duration;
+                            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+                            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+                            var interval = setInterval(function() {
+                                var timeLeft = animationEnd - Date.now();
+                                if (timeLeft <= 0) { return clearInterval(interval); }
+                                var particleCount = 50 * (timeLeft / duration);
+                                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                            }, 250);
+
+                            new Audio('https://www.myinstants.com/media/sounds/kids-cheering.mp3').play();
+                            statusIcon.className = "absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center z-20 border-4 border-white bg-green-500 text-white";
+                            statusIcon.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
+                            descBox.innerHTML = `<div class="animate-bounce mt-2 mb-4"><span class="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500">CONGRATULATIONS!!! 🎉</span></div>Luar Biasa, <b class="text-slate-800">${_0xCur.m}</b>!<br>Kamu menjawab benar ${_0xB} dari ${_0xQd.length} soal.`;
+                        } else {
+                            new Audio('https://www.myinstants.com/media/sounds/sadtrombone.mp3').play();
+                            statusIcon.className = "absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center z-20 border-4 border-white bg-red-500 text-white";
+                            statusIcon.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                            descBox.innerHTML = `Tetap Semangat, <b class="text-slate-800">${_0xCur.m}</b>!<br>Kamu menjawab benar ${_0xB} dari ${_0xQd.length} soal.<br><span class="text-red-500 font-bold mt-2 inline-block">Jangan menyerah, coba pelajari lagi materinya ya! ✊</span>`;
+                        }
+
+                        // === REVIEW JAWABAN SALAH TETAP DIPERTAHANKAN ===
+                        let _0xRev = "";
+                        let _0xErr = false;
+                        _0xQd.forEach((q, i) => {
+                            if(_0xAns[i] !== q.a) {
+                                _0xErr = true;
+                                let _0xUAns = q.o.find(x => x.i === _0xAns[i])?.t || "Tidak dijawab";
+                                let _0xCAns = q.o.find(x => x.i === q.a).t;
+                                _0xRev += `<div class="bg-white p-4 md:p-5 border-2 border-red-100 rounded-2xl shadow-sm text-left"><p class="font-bold text-slate-800 mb-3 md:mb-4 text-sm md:text-base">${i+1}. ${q.q}</p><div class="bg-red-50 p-2.5 md:p-3 rounded-xl mb-2"><p class="text-xs md:text-sm text-slate-600 font-medium">Jawaban Anda:</p><p class="text-red-600 font-semibold text-xs md:text-sm">${_0xAns[i]}. ${_0xUAns}</p></div><div class="bg-green-50 p-2.5 md:p-3 rounded-xl"><p class="text-xs md:text-sm text-slate-600 font-medium">Jawaban Benar:</p><p class="text-green-600 font-bold text-xs md:text-sm">${q.a}. ${_0xCAns}</p></div></div>`;
+                            }
+                        });
+
+                        if(_0xErr) {
+                            document.getElementById('reviewContainer').innerHTML = _0xRev;
+                            document.getElementById('reviewWrapper').classList.remove('hidden');
+                        }
+                    }, 3000); // 3 detik loading untuk mensimulasikan upload & koreksi sistem
+                } catch (error) {
+                    _0xLHide(); alert("Terjadi kesalahan jaringan saat mengirim data.");
+                }
+            };
+        })();
+    </script>
+</body>
+</html>
